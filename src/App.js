@@ -4,11 +4,13 @@ import "./App.css";
 import Navbar from "./components/layout/Navbar";
 import Users from "./components/users/Users";
 import Search from "./components/Search";
+import Alert from './components/layout/Alert'
 
 class App extends Component {
   state = {
     loading: false,
     users: [],
+    alert: null
   };
 
   searchUser = async (searchQuery) => {
@@ -26,11 +28,26 @@ class App extends Component {
 
   clearUser = () => this.setState({users: [], loading: false})
  
+  setAlert = (msg, type) => {
+    this.setState({alert: {msg: msg, type: type}})
+
+    setTimeout(() => {
+      this.setState({alert: null})
+    }, 1250);
+  }
+
+
   render() {
     return (
       <div className="App">
         <Navbar />
-        <Search searchUser={this.searchUser} clearUser={this.clearUser} showBtn={this.state.users.length > 0 ? true : false}/>
+        {this.state.alert !== null ? <Alert alert={this.state.alert}/> : null}
+        <Search 
+        searchUser={this.searchUser} 
+        clearUser={this.clearUser} 
+        showBtn={this.state.users.length > 0 ? true : false}
+        setAlert={this.setAlert}
+        />
         <Users users={this.state.users} loading={this.state.loading} />
       </div>
     );

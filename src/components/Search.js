@@ -10,7 +10,8 @@ class Search extends Component {
   static propTypes = {
     searchUser: PropTypes.func.isRequired,
     clearUser: PropTypes.func.isRequired,
-    showBtn: PropTypes.bool.isRequired
+    showBtn: PropTypes.bool.isRequired,
+    setAlert: PropTypes.func.isRequired
   }
 
   eventHandler = (e) => {
@@ -19,8 +20,16 @@ class Search extends Component {
 
   onSubmit = (e) => {
     e.preventDefault()
-    this.props.searchUser(this.state.text)
+
+    if(this.state.text === '') {
+      this.props.setAlert('Please enter something!', 'danger')
+    }
+    else {
+      this.props.searchUser(this.state.text)
+      this.setState({text: ''})
+    }
   }
+
 
   render() {
     return(
