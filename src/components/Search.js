@@ -8,7 +8,9 @@ class Search extends Component {
   }
 
   static propTypes = {
-    searchUser: PropTypes.func.isRequired
+    searchUser: PropTypes.func.isRequired,
+    clearUser: PropTypes.func.isRequired,
+    showBtn: PropTypes.bool.isRequired
   }
 
   eventHandler = (e) => {
@@ -27,6 +29,9 @@ class Search extends Component {
           <input type="text" name="text" placeholder="Search user..." value={this.state.text} onChange={this.eventHandler}/>
           <input type="submit" value="Find" className="btn btn-primary btn-block"/>
         </form>
+        {this.props.showBtn ? 
+        <button className="btn btn-danger btn-block" type="button" onClick={this.props.clearUser}>Clear</button> : null
+        }
       </div>
     )
   }
