@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import axios from "axios";
 import "./App.css";
@@ -6,71 +6,80 @@ import Navbar from "./components/layout/Navbar";
 import Users from "./components/users/Users";
 import Search from "./components/Search";
 import Alert from "./components/layout/Alert";
-import About from './components/About'
+import About from "./components/About";
+import NotFound from './components/NotFound'
 
-class App extends Component {
-  state = {
-    loading: false,
-    users: [],
-    alert: null,
-  };
+let githubClientId;
+let githubClientSecret;
 
-  searchUser = async (searchQuery) => {
+if(process.env.NODE_ENV !== 'production') {
+  githubClientId = process.env.REACT_APP_GITHUB_CLIENT_ID
+  githubClientSecret = process.env.REACT_APP_GITHUB_CLIENT_SECRET  
+}
+else {
+  githubClientId = process.env.GITHUB_CLIENT_ID
+  githubClientSecret = process.env.GITHUB_CLIENT_SECRET
+}
+
+
+const App = () => {
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [alert, setAlertMsg] = useState(null);
+
+  const searchUser = async (searchQuery) => {
     try {
-      this.setState({ loading: true });
+      setLoading(true);
       const res = await axios.get(
-        `https://api.github.com/search/users?q=${searchQuery}&client_id=${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`
+        `https://api.github.com/search/users?q=${searchQuery}&client_id=${githubClientId}&client_secret=${githubClientSecret}`
       );
-      this.setState({ loading: false, users: res.data.items });
+      setUsers(res.data.items);
+      setLoading(false);
     } catch (error) {
       console.log(error);
     }
   };
 
-  clearUser = () => this.setState({ users: [], loading: false });
+  const clearUser = () => {
+    setUsers([]);
+    setLoading(false);
+  };
 
-  setAlert = (msg, type) => {
-    this.setState({ alert: { msg: msg, type: type } });
+  const setAlert = (msg, type) => {
+    setAlertMsg({ msg, type });
 
     setTimeout(() => {
-      this.setState({ alert: null });
+      setAlertMsg({ alert: null });
     }, 1250);
   };
 
-  render() {
-    return (
-      <BrowserRouter>
-        <div className="App">
-          <Navbar />
-          {this.state.alert !== null ? (
-            <Alert alert={this.state.alert} />
-          ) : null}
-
-          <Switch>
-            
-            <Route
-              exact
-              path="/"
-              render={ props => (
-                <Fragment>
-                  <Search
-                    searchUser={this.searchUser}
-                    clearUser={this.clearUser}
-                    showBtn={this.state.users.length > 0 ? true : false}
-                    setAlert={this.setAlert}
-                  />
-                  <Users users={this.state.users} loading={this.state.loading} /> 
-                </Fragment>
-              )}
-            />
-
-            <Route path="/about" exact component={About}/>
-
-          </Switch>
-        </div>
-      </BrowserRouter>
-    );
-  }
-}
+  return (
+    <BrowserRouter>
+      <div className="App">
+        <Navbar />
+        {alert !== null ? <Alert alert={alert} /> : null}
+        <Switch>
+          <Route
+            exact
+            path="/"
+            render={(props) => (
+              <Fragment>
+                <Search
+                  searchUser={searchUser}
+                  clearUser={clearUser}
+                  showBtn={users.length > 0 ? true : false}
+                  setAlert={setAlert}
+                />
+                <Users users={users} loading={loading} />
+              </Fragment>
+            )}
+          />
+          <Route path="/about" exact component={About} />
+          <Route component={NotFound}/>
+        </Switch>
+      </div>
+    </BrowserRouter>
+  );
+};
 
 export default App;
