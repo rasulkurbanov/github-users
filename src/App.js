@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useReducer } from "react";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import axios from "axios";
 import "./App.css";
@@ -21,37 +21,80 @@ else {
   githubClientSecret = process.env.GITHUB_CLIENT_SECRET
 }
 
+//Creating initial state 
+const initialState = {
+  loading: false,
+  users: [],
+  alert: null
+}
+
+const reducer = (state, action) => {
+  switch(action.type) {
+    case "GITHUB_PROFILE_REQUEST":
+      return {
+        ...state,
+        loading: true
+      }
+    case "GITHUB_PROFILE_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        users: action.payload,
+      }  
+    case "GITHUB_PROFILE_ERROR":
+      return {
+        ...state,
+        alert: action.payload
+      }
+    default: 
+      return state
+  }
+}
 
 const App = () => {
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [alert, setAlertMsg] = useState(null);
+  const [ state, dispatch ] = useReducer(reducer, initialState)
+
 
   const searchUser = async (searchQuery) => {
     try {
-      setLoading(true);
+      dispatch({
+        type: "GITHUB_PROFILE_REQUEST"
+      })
+
       const res = await axios.get(
         `https://api.github.com/search/users?q=${searchQuery}&client_id=${githubClientId}&client_secret=${githubClientSecret}`
       );
-      setUsers(res.data.items);
-      setLoading(false);
+      dispatch({
+        type: "GITHUB_PROFILE_SUCCESS",
+        payload: res.data.items
+      })
     } catch (error) {
       console.log(error);
     }
   };
 
   const clearUser = () => {
-    setUsers([]);
-    setLoading(false);
+    dispatch({
+      type: "GITHUB_PROFILE_SUCCESS",
+      payload: []
+    })
   };
 
   const setAlert = (msg, type) => {
-    setAlertMsg({ msg, type });
+    dispatch({
+      type: "GITHUB_PROFILE_ERROR",
+      payload: {msg, type}
+    })
 
     setTimeout(() => {
-      setAlertMsg({ alert: null });
+      dispatch({
+        type: "GITHUB_PROFILE_ERROR",
+        payload: null
+      })
     }, 1250);
   };
+
+  const {alert, users, loading} = state
 
   return (
     <BrowserRouter>
